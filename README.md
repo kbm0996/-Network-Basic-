@@ -81,6 +81,10 @@
 
 ### 2-a. 서버
 
+  ![TCP/IP Server Network Function Order](https://github.com/kbm0996/Network-Programming-Basic/blob/master/Server%20Sequence.gif)
+  
+  **figure 1. TCP/IP Server Network Function Order*
+
 1. 소켓 프로그램에 소켓 및 소켓 주소 전달 : bind(sock, *sockaddr, addrlen)
 
         if (bind(ListenSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
@@ -141,6 +145,11 @@
         WSACleanup();
 
 ### 2-b. 클라이언트
+
+  ![TCP/IP Client Network Function Order](https://github.com/kbm0996/Network-Programming-Basic/blob/master/Client%20Sequence.gif)
+  
+  **figure 2. TCP/IP Client Network Function Order*
+
 
 1. 서버 접속 요청 : connect(sock, *sockaddr, addrlen)
 
