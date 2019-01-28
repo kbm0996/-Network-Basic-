@@ -64,30 +64,42 @@
   소켓 반환. 실패 시 INVALID_SOCKET 반환. 실패 직후에 WSAGetLastError() 함수를 호출하여 윈속 오류 코드 검색 가능
   (오류 코드 목록 : https://docs.microsoft.com/ko-kr/windows/desktop/WinSock/windows-sockets-error-codes-2)
   
-3. 소켓 주소 구조체 설정 : SOCKADDR_IN
+3. 소켓 주소 구조체 설정 : SOCKADDR_IN, SOCKADDR(AF_UNIX의 경우)
 
         SOCKADDR_IN ServerAddr;
-        ServerAddr.sin_family = AF_INET;      // 주소 체계 삽입 (table 1 참조)
-        ServerAddr.sin_port = htons(df_SERVER_PORT);  // 접속할 서버의 포트, 혹은 서버측에서 열고자 할 포트 입력
-        // u_short htons(u_short hostshort); : 호스트 바이트 정렬 방식의 2바이트 데이터를 네트워크 바이트 정렬 방식으로 변환
+        ServerAddr.sin_family = AF_INET; 
+        ServerAddr.sin_port = htons(df_SERVER_PORT); 
+        // htons() 호스트 바이트 정렬 방식의 2바이트 데이터를 네트워크 바이트 정렬 방식으로 변환
         ServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);	// INADDR_ANY = "0.0.0.0" 전체 Open
-        // u_long htonl(u_long hostlong); : 호스트 바이트 정렬 방식의 4바이트 데이터를 네트워크 바이트 정렬 방식으로 변환
+        // htonl() 호스트 바이트 정렬 방식의 4바이트 데이터를 네트워크 바이트 정렬 방식으로 변환
         // == InetPton(AF_INET, L"0.0.0.0", &ServerAddr.sin_addr); 
+        
+  * ServerAddr.sin_family : 주소 체계 (table 1 참조)
+  * ServerAddr.sin_port   : 클라이언트의 경우 접속할 서버의 포트. 서버의 경우 열고자 할 포트
+  * ServerAddr.sin_addr   : IP 주소
+  * ServerADdr.sin_zero[8] : 구조체 정렬을 위해 구조체 크기를 맞추는 용도의 더미 
 
 ### 2-a. 서버
-#### ☑ 통신 준비
 
-1. Bind : 
+1. 소켓 프로그램에 소켓 및 소켓 주소 전달 : bind(sock, *sockaddr, addrlen)
 
         if (bind(ListenSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
           err_quit(L"bind()");  // 예외 처리
-
-https://m.blog.naver.com/tnsehf12345/220426207208
-/////////////////
+          
+  * sock : 소켓
+  * sockaddr : 소켓 주소
+  * addrlen : 소켓 주소 구조체 크기 
+  
+  
+2. 클라이언트 접속 요청을 받을 수 있도록 설정 : listen(sock, iBacklog)
 
         if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) 
-          err_quit(L"listen()");
+          err_quit(L"listen()"); // 예외 처리
 
+  * sock : 소켓
+  * iBacklog : 최대 접속 대기 클라이언트 수
+  
+3. 클라이언트 접속 요청 수락 : accept(sock, *addr, *addrlen)
 
         while (1)
         {
@@ -98,135 +110,62 @@ https://m.blog.naver.com/tnsehf12345/220426207208
           SOCKADDR_IN clientaddr;
           int addrlen = sizeof(clientaddr);
           SOCKET ClientSocket = accept(ListenSocket, (SOCKADDR *)&clientaddr, &addrlen);
-          if (ClientSocket == INVALID_SOCKET)
+          if (ClientSocket == INVALID_SOCKET) // 예외 처리
           {
             err_display(L"accpet()");
             closesocket(ClientSocket);
             continue;
           }
 
-          //////////////////////////////////////////////////////////////
-          // 접속한 클라이언트 정보 출력
-          //
-          //////////////////////////////////////////////////////////////
-          TCHAR szAddrBuf[INET_ADDRSTRLEN];
-          DWORD dwAddrBuf_Size = sizeof(szAddrBuf);
-          // IP(숫자→문자열)
-          if (WSAAddressToString((struct sockaddr*)&clientaddr, sizeof(SOCKADDR_IN), NULL, szAddrBuf, &dwAddrBuf_Size) == SOCKET_ERROR)
-          {
-            err_display(L"WSAAddressToString()");
-            closesocket(ClientSocket);
-            continue;
-          }
 
-          ///printf("\n[TCP 서버] 클라이언트 접속: IP 주소 = %s, 포트 번호 = %d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port)); 
-          // IP(숫자→문자열) inet_ntoa(clientaddr.sin_addr) 함수는 더 이상 사용할 수 없다
-          printf("\n[TCP 서버] 클라이언트 접속: %ls\n", szAddrBuf);
+  * sock : 소켓
+  * addr : 클라이언트 주소가 저장될 소켓 구조체 포인터(out 변수)
+  * addrlen : 클라이언트 주소의 크기
+  
+4. 서버 & 클라이언트 통신
 
           //////////////////////////////////////////////////////////////
           // 클라이언트와 데이터 통신
           //
           //////////////////////////////////////////////////////////////
-          char szDataBuf[df_BUF_SIZE + 1];
-          while (1)
-          {
-            // 데이터 받기
-            int iRecvlen = recv(ClientSocket, szDataBuf, df_BUF_SIZE, 0);
-            if (iRecvlen == SOCKET_ERROR)	// 비정상적 접속 종료
-            {
-              err_display(L"recv()");
-              break;
-            }
-            else if (iRecvlen == 0)	// 정상적 접속 종료
-              break;
+         
+          // 생략
+          
+          closesocket(ClientSocket); // 통신 종료 후에는 소켓 정리
 
-            // 받은 데이터 출력
-            szDataBuf[iRecvlen] = '\0';
-            printf("[TCP/%ls]	%s\n", szAddrBuf, szDataBuf);
-            printf("[TCP/%ls]	받은 크기 %d\n", szAddrBuf, iRecvlen);
+        } // end of while(1)
 
-            // 데이터 보내기
-            if (send(ClientSocket, szDataBuf, iRecvlen, 0) == SOCKET_ERROR)
-            {
-              err_display(L"send()");
-              break;
-            }
-          }
+5. 소켓 정리
 
-          closesocket(ClientSocket);
-
-          printf("[TCP 서버] 클라이언트 종료: %ls\n", szAddrBuf); //ntohs(clientaddr.sin_port));
-        }
-
-        closesocket(Socket);
-        
+        closesocket(Socket);       
         WSACleanup();
 
+### 2-b. 클라이언트
 
+1. 서버 접속 요청 : connect(sock, *sockaddr, addrlen)
 
-#### ☑ 난수 생성
-
- 1~45 사이의 무작위 숫자를 생성하기 위해 rand() 함수 사용
-
- - 함수 원형
- >int rand(void);
-
- rand() 함수는 `의사 난수(pseudo-random number)`를 생성한다. 이 값은 몇 번을 호출해도 처음 호출했을 때 값이 그대로 반환되는 문제점이 있다.
-
- >void srand(unsigned int seed);
-
- srand() 함수는 rand() 함수의 문제점을 해결하기 위해 난수 생성을 위한 씨드(seed) 값을 제공한다.
-
-
- - 소스 코드
-
-         ...
-
-         srand((int)time(NULL));
-
-         ...
+        if (connect(Socket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
+		      err_quit(L"connect()");  // 예외 처리
+          
+  * sock : 소켓
+  * sockaddr : 소켓 주소
+  * addrlen : 소켓 주소 구조체 크기 
   
-         iInNumber[x] = rand() % 44 + 1;
+2. 서버 & 클라이언트 통신
 
-         ...
+        while(1)
+        {
+          //////////////////////////////////////////////////////////////
+          // 서버와 데이터 통신
+          //
+          //////////////////////////////////////////////////////////////
 
+          // 생략
 
- #### ☑ 키보드 눌림 감지
- 
-  자동 모드에서 키를 입력받을때 이를 논-블록(non-block)으로 감지하기 위해 사용
- 
-  - 함수 원형
-  >int _kbhit(void);
+        } // end of while(1)
 
- 키보드가 눌리면 0이 아닌 값을 반환한다.
+3. 소켓 정리
 
-  #### ☑ 눌린 키 값 반환
-  
-   - 함수 원형
-   >int _getch(void);
- 
-  _kbhit()에서 감지한 키를 아스키코드 정수형으로 반환한다.
-  
+        closesocket(Socket);       
+        WSACleanup();
 
- 
-  - 소스 코드
- 
-          ...
- 
-          if (_kbhit())			// Checking if the keyboard is pressed
-          {
-            switch (_getch())	// Checking pressed key
-            {
-            case '0':
-              g_iMode = 0;
-              break;
-            case '1':
-              g_iMode = 1;
-              break;
-            default:
-              g_iMode = 2;
-              break;
-            }
-          }
- 
-          ...
