@@ -85,6 +85,7 @@
   
   **figure 1. TCP/IP Server Network Function Order*
 
+
 1. 소켓 프로그램에 소켓 및 소켓 주소 전달 : bind(sock, *sockaddr, addrlen)
 
         if (bind(ListenSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
@@ -94,8 +95,10 @@
   * sockaddr : 소켓 주소
   * addrlen : 소켓 주소 구조체 크기 
   
-  
-2. 클라이언트 접속 요청을 받을 수 있도록 설정 : listen(sock, iBacklog)
+
+#### ☑ 클라이언트 접속 처리
+
+2. 클라이언트 접속 요청을 받을 수 있도록 설정 및 블록 상태로 대기 : listen(sock, iBacklog)
 
         if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) 
           err_quit(L"listen()"); // 예외 처리
@@ -138,18 +141,15 @@
           closesocket(ClientSocket); // 통신 종료 후에는 소켓 정리
 
         } // end of while(1)
-
-5. 소켓 정리
-
-        closesocket(Socket);       
-        WSACleanup();
-
+	
 ### 2-b. 클라이언트
 
   ![TCP/IP Client Network Function Order](https://github.com/kbm0996/Network-Programming-Basic/blob/master/Client%20Sequence.gif)
   
   **figure 2. TCP/IP Client Network Function Order*
 
+
+#### ☑ 서버 접속 요청
 
 1. 서버 접속 요청 : connect(sock, *sockaddr, addrlen)
 
@@ -173,7 +173,8 @@
 
         } // end of while(1)
 
-3. 소켓 정리
+### 3. 서버/클라이언트 공통
+#### ☑ 통신 종료 후 소켓 정리
 
         closesocket(Socket);       
         WSACleanup();
