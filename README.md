@@ -8,30 +8,31 @@
 
 1. 윈속  : WSAStartup(wVersionRequested, lpWSAData)
 
-        WSADATA wsa;
-        if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) // 매크로 함수 MAKEWORD(a, b) 인자의 두 BYTE를 하나의 WORD로 병합
-          err_quit(L"WSAStartup()"); // 예외 처리
+>        WSADATA wsa;
+>        if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) 
+>        // 매크로 함수 MAKEWORD(a, b) 인자의 두 BYTE를 하나의 WORD로 병합
+>          err_quit(L"WSAStartup()"); // 예외 처리
 
 2. 소켓 생성 : socket(af, type, protocol)
 
-        SOCKET Socket = socket(AF_INET, SOCK_STREAM, 0);
-        if (Socket == INVALID_SOCKET) // 예외 처리
-          err_quit(L"socket()");
+>        SOCKET Socket = socket(AF_INET, SOCK_STREAM, 0);
+>        if (Socket == INVALID_SOCKET) // 예외 처리
+>          err_quit(L"socket()");
 
-  * 주소 체계 (Af;Address family) 
+>  * 주소 체계 (Af;Address family) 
   
-   | Af | Meaning |
-   |:--------|:--------|
-   | AF_UNSPEC 0	| 미정의	| 
-   | AF_INET 2	| IPv4 주소 체계 | 
-   | AF_IPX 6	| IPX/SPX 주소 체계. 해당 프로토콜 설치 필요. Windows Vista 이상 미지원	| 
-   | AF_APPLETALK 16 | AppleTalk 주소 체계. 해당 프로토콜 설치 필요. Windows Vista 이상 미지원	|
-   | AF_NETBIOS 17	| NetBIOS 주소 체계	|
-   | AF_INET6 23	| IPv6 주소 체계	|
-   | AF_IRDA 26	| Infrared Data Association (IrDA) 주소 체계. 적외선 포트 및 드라이버 필요 |
-   | AF_BTH 32	| 블루투스 주소 체계. 블루투스 어댑터 및 드라이버 설치 필요. Windows XP SP2 이상 지원	|
+>   | Af | Meaning |
+>   |:--------|:--------|
+>   | AF_UNSPEC 0	| 미정의	| 
+>   | AF_INET 2	| IPv4 주소 체계 | 
+>   | AF_IPX 6	| IPX/SPX 주소 체계. 해당 프로토콜 설치 필요. Windows Vista 이상 미지원	| 
+>   | AF_APPLETALK 16 | AppleTalk 주소 체계. 해당 프로토콜 설치 필요. Windows Vista 이상 미지원	|
+>   | AF_NETBIOS 17	| NetBIOS 주소 체계	|
+>   | AF_INET6 23	| IPv6 주소 체계	|
+>   | AF_IRDA 26	| Infrared Data Association (IrDA) 주소 체계. 적외선 포트 및 드라이버 필요 |
+>   | AF_BTH 32	| 블루투스 주소 체계. 블루투스 어댑터 및 드라이버 설치 필요. Windows XP SP2 이상 지원	|
    
-   **table 1. Address family*
+>   **table 1. Address family*
 
   * 형식
   
