@@ -99,7 +99,7 @@
 
 #### ☑ 클라이언트 접속 처리
 
-2. 클라이언트 접속 요청을 받을 수 있도록 설정 및 블록 상태로 대기 : listen(sock, iBacklog)
+2. 클라이언트 접속 요청을 받을 수 있는 상태로 전환: listen(sock, iBacklog)
 
 >        if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) 
 >          err_quit(L"listen()"); // 예외 처리
@@ -107,7 +107,7 @@
   * sock : 소켓
   * iBacklog : 최대 접속 대기 클라이언트 수
   
-3. 클라이언트 접속 요청 수락 : accept(sock, *addr, *addrlen)
+3. 클라이언트 접속 요청을 받을 수 있도록 설정 및 블록 상태로 대기 및 수락 : accept(sock, *addr, *addrlen)
 
 >        while (1)
 >        {
